@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sri's 2026 Goals</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-hover: rgba(0,0,0,0.2);
+    --text: #1a1a1a;
+    --text-muted: #888;
+    --text-faint: #bbb;
+    --radius-md: 8px;
+    --radius-lg: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --surface: #242424;
+      --border: rgba(255,255,255,0.1);
+      --border-hover: rgba(255,255,255,0.2);
+      --text: #f0f0f0;
+      --text-muted: #888;
+      --text-faint: #444;
+    }
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 16px 28px;
+  }
+  header {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  header h1 { font-size: 22px; font-weight: 600; text-align: center; }
+  .edit-badge {
+    display: none;
+    position: absolute;
+    right: 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    background: #EEEDFE;
+    color: #3C3489;
+  }
+  @media (prefers-color-scheme: dark) {
+    .edit-badge { background: #1E1B3A; color: #AFA9EC; }
+  }
+  body.edit-mode .edit-badge { display: inline-block; }
+  .grid {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    flex: 1;
+  }
+  @media (max-width: 520px) {
+    .grid { grid-template-columns: 1fr; }
+    body { padding: 20px 12px; }
+  }
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+  }
+  .cat-badge {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: var(--radius-md);
+    display: inline-block;
+    margin-bottom: 20px;
+    align-self: flex-start;
+  }
+  .health .cat-badge { background: #E1F5EE; color: #0A5E48; }
+  .work   .cat-badge { background: #EEEDFE; color: #3C3489; }
+  .family .cat-badge { background: #FAEEDA; color: #5A3200; }
+  .fun    .cat-badge { background: #FAECE7; color: #6B2A0A; }
+  @media (prefers-color-scheme: dark) {
+    .health .cat-badge { background: #0A3D2A; color: #5DCAA5; }
+    .work   .cat-badge { background: #1E1B3A; color: #AFA9EC; }
+    .family .cat-badge { background: #3A2800; color: #FAC775; }
+    .fun    .cat-badge { background: #3A1A0A; color: #F0997B; }
+  }
+  .goal-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .goal-row:last-child { margin-bottom: 0; }
+
+  /* Drag handle — hidden in read mode */
+  .drag-handle {
+    display: none;
+    flex: 0 0 14px;
+    cursor: grab;
+    color: var(--text-faint);
+    font-size: 13px;
+    line-height: 1;
+    user-select: none;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+  }
+  .drag-handle span {
+    display: block;
+    width: 10px;
+    height: 1.5px;
+    background: currentColor;
+    border-radius: 1px;
+  }
+  body.edit-mode .drag-handle { display: flex; }
+  body.edit-mode .goal-row[draggable="true"] { cursor: default; }
+  body.edit-mode .goal-row[draggable="true"]:hover { background: rgba(0,0,0,0.02); border-radius: 6px; }
+  body.edit-mode .goal-row.dragging { opacity: 0.35; }
+  body.edit-mode .goal-row.drag-over {
+    outline: 1.5px dashed var(--border-hover);
+    border-radius: 6px;
+  }
+
+  .goal-info { flex: 1; min-width: 0; }
+  .goal-name {
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+  .goal-name.placeholder { color: var(--text-faint); font-style: italic; font-weight: 400; }
+  .goal-pct {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+  .bar-wrap { flex: 0 0 90px; }
+  .bar-bg {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  body.edit-mode .bar-bg { cursor: pointer; }
+  body.edit-mode .bar-bg:hover { background: var(--border-hover); }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.15s ease;
+    pointer-events: none;
+  }
+  .health .bar-fill { background: #1D9E75; }
+  .work   .bar-fill { background: #7F77DD; }
+  .family .bar-fill { background: #EF9F27; }
+  .fun    .bar-fill { background: #D85A30; }
+
+  /* Edit hint shown per row in edit mode */
+  body.edit-mode .goal-info { cursor: pointer; }
+
+  /* Modals */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border);
+    padding: 20px;
+    width: 100%;
+    max-width: 360px;
+  }
+  .modal h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .modal-row { margin-bottom: 12px; }
+  .modal-row label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .modal-row input[type="text"],
+  .modal-row input[type="password"] {
+    width: 100%;
+    font-size: 13px;
+    padding: 7px 10px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+  }
+  .modal-row input[type="text"]:focus,
+  .modal-row input[type="password"]:focus { border-color: var(--border-hover); }
+  .modal-row input[type="range"] { width: 100%; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+  .modal-actions button {
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .modal-actions .save-btn {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+  .modal-actions button:hover { opacity: 0.8; }
+  .modal-error {
+    font-size: 12px;
+    color: #D85A30;
+    margin-top: 6px;
+    min-height: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sri's 2026 Goals</h1>
+  <span class="edit-badge">Editing</span>
+</header>
+
+<div class="grid" id="app"></div>
+
+<!-- Goal Edit Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Edit goal</h2>
+    <div class="modal-row">
+      <label>Goal name</label>
+      <input type="text" id="modal-name" placeholder="What's the goal?" />
+    </div>
+    <div class="modal-row">
+      <label>Progress — <span id="modal-pct-label">0</span>%</label>
+      <input type="range" id="modal-range" min="0" max="100" step="1" value="0" />
+    </div>
+    <div class="modal-actions">
+      <button id="modal-cancel">Cancel</button>
+      <button class="save-btn" id="modal-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password Modal -->
+<div class="modal-overlay" id="pw-modal">
+  <div class="modal">
+    <h2>Enter password to edit</h2>
+    <div class="modal-row">
+      <label>Password</label>
+      <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password" />
+      <div class="modal-error" id="pw-error"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="pw-cancel">Cancel</button>
+      <button class="save-btn" id="pw-submit">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- Mode detection ----
+const PASSWORD = 'havefun!';
+const isEditPath = /\/edit\/?(\?.*)?$/.test(window.location.pathname);
+let editMode = false;
+
+const pwModal = document.getElementById('pw-modal');
+const pwInput = document.getElementById('pw-input');
+const pwError = document.getElementById('pw-error');
+
+if (isEditPath) {
+  if (sessionStorage.getItem('goals_auth') === 'true') {
+    activateEditMode();
+  } else {
+    pwModal.classList.add('open');
+    setTimeout(() => pwInput.focus(), 50);
+  }
+}
+
+function activateEditMode() {
+  editMode = true;
+  document.body.classList.add('edit-mode');
+  pwModal.classList.remove('open');
+  render();
+}
+
+document.getElementById('pw-submit').addEventListener('click', tryPassword);
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
+
+function tryPassword() {
+  if (pwInput.value === PASSWORD) {
+    sessionStorage.setItem('goals_auth', 'true');
+    pwError.textContent = '';
+    activateEditMode();
+  } else {
+    pwError.textContent = 'Incorrect password. Try again.';
+    pwInput.value = '';
+    pwInput.focus();
+  }
+}
+
+document.getElementById('pw-cancel').addEventListener('click', () => {
+  window.location.href = '/';
+});
+
+// ---- Data ----
+const DEFAULT = [
+  {
+    id: 'health', label: 'Health',
+    goals: [
+      { name: '15% body fat', progress: 0 },
+      { name: 'Handstand', progress: 0 },
+      { name: 'Marathon under 2:45', progress: 0 },
+      { name: 'Finish Hyrox', progress: 0 }
+    ]
+  },
+  {
+    id: 'work', label: 'Work',
+    goals: [
+      { name: '', progress: 0 },
+      { name: '', progress: 0 },
+      { name: '', progress: 0 },
+      { name: '', progress: 0 }
+    ]
+  },
+  {
+    id: 'family', label: 'Family',
+    goals: [
+      { name: '', progress: 0 },
+      { name: '', progress: 0 },
+      { name: '', progress: 0 },
+      { name: '', progress: 0 }
+    ]
+  },
+  {
+    id: 'fun', label: 'Fun',
+    goals: [
+      { name: '', progress: 0 },
+      { name: '', progress: 0 },
+      { name: '', progress: 0 },
+      { name: '', progress: 0 }
+    ]
+  }
+];
+
+let state;
+try { state = JSON.parse(localStorage.getItem('goals_2026')) || DEFAULT; } catch(e) { state = DEFAULT; }
+if (!state || state.length !== 4) state = DEFAULT;
+
+function save() {
+  try { localStorage.setItem('goals_2026', JSON.stringify(state)); } catch(e) {}
+}
+
+// ---- Drag state ----
+let dragSrc = null; // { ci, gi }
+
+// ---- Render ----
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  state.forEach((cat, ci) => {
+    const card = document.createElement('div');
+    card.className = 'card ' + cat.id;
+
+    const badge = document.createElement('span');
+    badge.className = 'cat-badge';
+    badge.textContent = cat.label;
+    card.appendChild(badge);
+
+    cat.goals.forEach((g, gi) => {
+      const row = document.createElement('div');
+      row.className = 'goal-row';
+
+      // Drag handle (edit mode only)
+      const handle = document.createElement('div');
+      handle.className = 'drag-handle';
+      handle.title = 'Drag to reorder';
+      handle.innerHTML = '<span></span><span></span><span></span>';
+      row.appendChild(handle);
+
+      // Goal info
+      const isEmpty = !g.name;
+      const info = document.createElement('div');
+      info.className = 'goal-info';
+      info.innerHTML =
+        `<div class="goal-name${isEmpty ? ' placeholder' : ''}">${isEmpty ? 'Add goal\u2026' : g.name}</div>` +
+        (!isEmpty ? `<div class="goal-pct">${g.progress}%</div>` : '');
+      row.appendChild(info);
+
+      // Progress bar
+      const barWrap = document.createElement('div');
+      barWrap.className = 'bar-wrap';
+      const barBg = document.createElement('div');
+      barBg.className = 'bar-bg';
+      const barFill = document.createElement('div');
+      barFill.className = 'bar-fill';
+      barFill.style.width = g.progress + '%';
+      barBg.appendChild(barFill);
+      barWrap.appendChild(barBg);
+      row.appendChild(barWrap);
+
+      if (editMode) {
+        row.draggable = true;
+
+        // Double-click row → open edit modal
+        row.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          openModal(ci, gi);
+        });
+
+        // Click bar → set progress
+        barBg.addEventListener('click', e => {
+          const rect = barBg.getBoundingClientRect();
+          const pct = Math.round(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * 100);
+          state[ci].goals[gi].progress = pct;
+          save(); render();
+        });
+
+        // Drag & drop reordering (within same category)
+        row.addEventListener('dragstart', e => {
+          dragSrc = { ci, gi };
+          row.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        row.addEventListener('dragend', () => {
+          row.classList.remove('dragging');
+          document.querySelectorAll('.goal-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+        });
+        row.addEventListener('dragover', e => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          document.querySelectorAll('.goal-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+          if (!dragSrc || dragSrc.ci !== ci) return;
+          row.classList.add('drag-over');
+        });
+        row.addEventListener('dragleave', () => {
+          row.classList.remove('drag-over');
+        });
+        row.addEventListener('drop', e => {
+          e.preventDefault();
+          row.classList.remove('drag-over');
+          if (!dragSrc || dragSrc.ci !== ci || dragSrc.gi === gi) return;
+          const goals = state[ci].goals;
+          const [moved] = goals.splice(dragSrc.gi, 1);
+          goals.splice(gi, 0, moved);
+          dragSrc = null;
+          save(); render();
+        });
+      }
+
+      card.appendChild(row);
+    });
+
+    app.appendChild(card);
+  });
+}
+
+// ---- Goal Edit Modal ----
+let editTarget = null;
+
+function openModal(ci, gi) {
+  editTarget = { ci, gi };
+  const g = state[ci].goals[gi];
+  document.getElementById('modal-title').textContent = state[ci].label + ' — Goal ' + (gi + 1);
+  document.getElementById('modal-name').value = g.name;
+  document.getElementById('modal-range').value = g.progress;
+  document.getElementById('modal-pct-label').textContent = g.progress;
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('modal-name').focus();
+}
+
+document.getElementById('modal-range').addEventListener('input', function() {
+  document.getElementById('modal-pct-label').textContent = this.value;
+});
+
+document.getElementById('modal-save').addEventListener('click', () => {
+  if (!editTarget) return;
+  const { ci, gi } = editTarget;
+  state[ci].goals[gi].name = document.getElementById('modal-name').value.trim();
+  state[ci].goals[gi].progress = +document.getElementById('modal-range').value;
+  save(); render();
+  document.getElementById('modal').classList.remove('open');
+  editTarget = null;
+});
+
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('modal').classList.remove('open');
+  editTarget = null;
+});
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('modal').classList.remove('open');
+    editTarget = null;
+  }
+});
+
+render();
+</script>
+</body>
+</html>
