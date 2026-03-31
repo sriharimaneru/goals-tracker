@@ -341,51 +341,60 @@ document.getElementById('done-btn').addEventListener('click', () => {
 });
 
 // ---- Data ----
+// Bump DATA_VERSION whenever DEFAULT is updated — forces all devices to sync the new baseline.
+const DATA_VERSION = '2026-04-01';
 const DEFAULT = [
   {
     id: 'health', label: 'Health',
     goals: [
-      { name: '15% body fat', progress: 0 },
-      { name: 'Handstand', progress: 0 },
-      { name: 'Marathon under 2:45', progress: 0 },
-      { name: 'Finish Hyrox', progress: 0 }
+      { name: 'Finished Hyrox', progress: 75 },
+      { name: '15% body fat', progress: 10 },
+      { name: 'Sleep score 80', progress: 5 },
+      { name: 'Bright, energetic eyes', progress: 2 }
     ]
   },
   {
     id: 'work', label: 'Work',
     goals: [
-      { name: '', progress: 0 },
-      { name: '', progress: 0 },
-      { name: '', progress: 0 },
-      { name: '', progress: 0 }
+      { name: 'SV debt free', progress: 60 },
+      { name: 'Raised $5M for SV', progress: 10 },
+      { name: 'Raised $1M for SF', progress: 0 },
+      { name: '₹1Cr diversified', progress: 0 }
     ]
   },
   {
     id: 'family', label: 'Family',
     goals: [
-      { name: '', progress: 0 },
-      { name: '', progress: 0 },
-      { name: '', progress: 0 },
-      { name: '', progress: 0 }
+      { name: 'Found my partner', progress: 0 },
+      { name: 'Parents moved to Farmhouse', progress: 0 },
+      { name: 'Paid off Samasra', progress: 0 },
+      { name: '5 gifts for Vedh', progress: 0 }
     ]
   },
   {
     id: 'fun', label: 'Fun',
     goals: [
-      { name: '', progress: 0 },
-      { name: '', progress: 0 },
-      { name: '', progress: 0 },
-      { name: '', progress: 0 }
+      { name: 'Dated 25', progress: 12 },
+      { name: '15 outdoor weekends', progress: 0 },
+      { name: 'Explored 5 new countries', progress: 0 },
+      { name: 'Massage, Vocals & Dance', progress: 0 }
     ]
   }
 ];
 
 let state;
-try { state = JSON.parse(localStorage.getItem('goals_2026')) || DEFAULT; } catch(e) { state = DEFAULT; }
+try {
+  const saved = JSON.parse(localStorage.getItem('goals_2026'));
+  const savedVersion = localStorage.getItem('goals_2026_version');
+  state = (saved && savedVersion === DATA_VERSION) ? saved : DEFAULT;
+} catch(e) { state = DEFAULT; }
 if (!state || state.length !== 4) state = DEFAULT;
 
 function save() {
-  try { localStorage.setItem('goals_2026', JSON.stringify(state)); } catch(e) {}
+  try {
+    localStorage.setItem('goals_2026', JSON.stringify(state));
+    localStorage.setItem('goals_2026_version', DATA_VERSION);
+  } catch(e) {}
 }
 
 // ---- Mode init (after state is ready) ----
