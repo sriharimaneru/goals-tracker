@@ -65,6 +65,22 @@
     .edit-badge { background: #1E1B3A; color: #AFA9EC; }
   }
   body.edit-mode .edit-badge { display: inline-block; }
+  .done-btn {
+    display: none;
+    position: absolute;
+    left: 0;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    background: var(--text);
+    color: var(--bg);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .done-btn:hover { opacity: 0.8; }
+  body.edit-mode .done-btn { display: inline-block; }
   .grid {
     max-width: 800px;
     width: 100%;
@@ -250,6 +266,7 @@
 
 <header>
   <h1>Sri's 2026 Goals</h1>
+  <button class="done-btn" id="done-btn">Done</button>
   <span class="edit-badge">Editing</span>
 </header>
 
@@ -332,6 +349,10 @@ function tryPassword() {
 }
 
 document.getElementById('pw-cancel').addEventListener('click', () => {
+  window.location.href = '/';
+});
+
+document.getElementById('done-btn').addEventListener('click', () => {
   window.location.href = '/';
 });
 
