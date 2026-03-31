@@ -317,22 +317,6 @@ const pwModal = document.getElementById('pw-modal');
 const pwInput = document.getElementById('pw-input');
 const pwError = document.getElementById('pw-error');
 
-if (isEditPath) {
-  if (sessionStorage.getItem('goals_auth') === 'true') {
-    activateEditMode();
-  } else {
-    pwModal.classList.add('open');
-    setTimeout(() => pwInput.focus(), 50);
-  }
-}
-
-function activateEditMode() {
-  editMode = true;
-  document.body.classList.add('edit-mode');
-  pwModal.classList.remove('open');
-  render();
-}
-
 document.getElementById('pw-submit').addEventListener('click', tryPassword);
 pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
 
@@ -402,6 +386,23 @@ if (!state || state.length !== 4) state = DEFAULT;
 
 function save() {
   try { localStorage.setItem('goals_2026', JSON.stringify(state)); } catch(e) {}
+}
+
+// ---- Mode init (after state is ready) ----
+if (isEditPath) {
+  if (sessionStorage.getItem('goals_auth') === 'true') {
+    activateEditMode();
+  } else {
+    pwModal.classList.add('open');
+    setTimeout(() => pwInput.focus(), 50);
+  }
+}
+
+function activateEditMode() {
+  editMode = true;
+  document.body.classList.add('edit-mode');
+  pwModal.classList.remove('open');
+  render();
 }
 
 // ---- Drag state ----
