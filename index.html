@@ -260,6 +260,39 @@
     margin-top: 6px;
     min-height: 16px;
   }
+  .modal-row textarea {
+    width: 100%;
+    font-size: 13px;
+    padding: 7px 10px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+    min-height: 68px;
+    line-height: 1.45;
+  }
+  .modal-row textarea:focus { border-color: var(--border-hover); }
+  /* Hover tooltip */
+  #goal-tooltip {
+    position: fixed;
+    z-index: 999;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 7px 11px;
+    border-radius: 8px;
+    max-width: 260px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #goal-tooltip.visible { opacity: 1; }
 </style>
 </head>
 <body>
@@ -271,6 +304,7 @@
 </header>
 
 <div class="grid" id="app"></div>
+<div id="goal-tooltip"></div>
 
 <!-- Goal Edit Modal -->
 <div class="modal-overlay" id="modal">
@@ -279,6 +313,10 @@
     <div class="modal-row">
       <label>Goal name</label>
       <input type="text" id="modal-name" placeholder="What's the goal?" />
+    </div>
+    <div class="modal-row">
+      <label>Notes <span style="color:var(--text-muted);font-weight:400">(shown on hover)</span></label>
+      <textarea id="modal-desc" placeholder="Add context, details, or a reminder…"></textarea>
     </div>
     <div class="modal-row">
       <label>Progress — <span id="modal-pct-label">0</span>%</label>
@@ -463,6 +501,12 @@ function render() {
       barWrap.appendChild(barBg);
       row.appendChild(barWrap);
 
+      // Hover tooltip (read & edit mode)
+      if (g.desc) {
+        row.addEventListener('mouseenter', () => showTooltip(g.desc, row));
+        row.addEventListener('mouseleave', hideTooltip);
+      }
+
       if (editMode) {
         row.draggable = true;
 
@@ -519,6 +563,27 @@ function render() {
   });
 }
 
+// ---- Tooltip ----
+const tooltip = document.getElementById('goal-tooltip');
+
+function showTooltip(text, anchorEl) {
+  tooltip.textContent = text;
+  tooltip.classList.add('visible');
+  const rect = anchorEl.getBoundingClientRect();
+  const gap = 8;
+  let top = rect.bottom + gap;
+  let left = rect.left;
+  // keep within viewport
+  tooltip.style.left = '0'; tooltip.style.top = '0'; // reset before measuring
+  const tw = tooltip.offsetWidth;
+  if (left + tw > window.innerWidth - 12) left = window.innerWidth - tw - 12;
+  if (left < 12) left = 12;
+  if (top + tooltip.offsetHeight > window.innerHeight - 12) top = rect.top - tooltip.offsetHeight - gap;
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = top + 'px';
+}
+function hideTooltip() { tooltip.classList.remove('visible'); }
+
 // ---- Goal Edit Modal ----
 let editTarget = null;
 
@@ -527,6 +592,7 @@ function openModal(ci, gi) {
   const g = state[ci].goals[gi];
   document.getElementById('modal-title').textContent = state[ci].label + ' — Goal ' + (gi + 1);
   document.getElementById('modal-name').value = g.name;
+  document.getElementById('modal-desc').value = g.desc || '';
   document.getElementById('modal-range').value = g.progress;
   document.getElementById('modal-pct-label').textContent = g.progress;
   document.getElementById('modal').classList.add('open');
@@ -541,6 +607,7 @@ document.getElementById('modal-save').addEventListener('click', () => {
   if (!editTarget) return;
   const { ci, gi } = editTarget;
   state[ci].goals[gi].name = document.getElementById('modal-name').value.trim();
+  state[ci].goals[gi].desc = document.getElementById('modal-desc').value.trim();
   state[ci].goals[gi].progress = +document.getElementById('modal-range').value;
   save(); render();
   document.getElementById('modal').classList.remove('open');
