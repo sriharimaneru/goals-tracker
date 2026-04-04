@@ -172,12 +172,10 @@
     flex: 1;
   }
   .goal-name.placeholder { color: var(--text-faint); font-style: italic; font-weight: 400; }
-  /* "more" button — only visible when goal has a desc */
+  /* info icon — read mode only */
   .goal-more-btn {
     flex: 0 0 auto;
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    font-size: 11px;
     color: var(--text-faint);
     background: none;
     border: none;
@@ -185,10 +183,11 @@
     cursor: pointer;
     font-family: inherit;
     line-height: 1;
-    opacity: 0.8;
+    opacity: 0.6;
     transition: opacity 0.1s, color 0.1s;
   }
   .goal-more-btn:hover { opacity: 1; color: var(--text-muted); }
+  body.edit-mode .goal-more-btn { display: none; }
   .goal-pct {
     font-size: 12px;
     color: var(--text-muted);
@@ -514,7 +513,7 @@ function render() {
       if (!isEmpty && g.desc) {
         const moreBtn = document.createElement('button');
         moreBtn.className = 'goal-more-btn';
-        moreBtn.textContent = 'more';
+        moreBtn.textContent = 'ⓘ';
         moreBtn.title = 'Show details';
         moreBtn.addEventListener('click', e => { e.stopPropagation(); openPopover(g.desc, moreBtn); });
         nameRow.appendChild(moreBtn);
