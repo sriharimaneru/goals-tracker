@@ -131,18 +131,16 @@
   }
   .goal-row:last-child { margin-bottom: 0; }
 
-  /* Drag handle — hidden in read mode */
+  /* Drag handle */
   .drag-handle {
     display: none;
     flex: 0 0 14px;
     cursor: grab;
     color: var(--text-faint);
-    font-size: 13px;
-    line-height: 1;
-    user-select: none;
     flex-direction: column;
     gap: 2px;
     align-items: center;
+    user-select: none;
   }
   .drag-handle span {
     display: block;
@@ -152,15 +150,17 @@
     border-radius: 1px;
   }
   body.edit-mode .drag-handle { display: flex; }
-  body.edit-mode .goal-row[draggable="true"] { cursor: default; }
   body.edit-mode .goal-row[draggable="true"]:hover { background: rgba(0,0,0,0.02); border-radius: 6px; }
   body.edit-mode .goal-row.dragging { opacity: 0.35; }
-  body.edit-mode .goal-row.drag-over {
-    outline: 1.5px dashed var(--border-hover);
-    border-radius: 6px;
-  }
+  body.edit-mode .goal-row.drag-over { outline: 1.5px dashed var(--border-hover); border-radius: 6px; }
 
   .goal-info { flex: 1; min-width: 0; }
+  .goal-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+  }
   .goal-name {
     font-size: 15px;
     font-weight: 500;
@@ -168,8 +168,27 @@
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--text);
+    min-width: 0;
+    flex: 1;
   }
   .goal-name.placeholder { color: var(--text-faint); font-style: italic; font-weight: 400; }
+  /* "more" button — only visible when goal has a desc */
+  .goal-more-btn {
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--text-faint);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.1s, color 0.1s;
+  }
+  .goal-more-btn:hover { opacity: 1; color: var(--text-muted); }
   .goal-pct {
     font-size: 12px;
     color: var(--text-muted);
@@ -195,9 +214,26 @@
   .work   .bar-fill { background: #7F77DD; }
   .family .bar-fill { background: #EF9F27; }
   .fun    .bar-fill { background: #D85A30; }
-
-  /* Edit hint shown per row in edit mode */
   body.edit-mode .goal-info { cursor: pointer; }
+
+  /* Details popover */
+  #goal-popover {
+    position: fixed;
+    z-index: 200;
+    background: var(--surface);
+    border: 0.5px solid var(--border-hover);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text);
+    max-width: 260px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    display: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #goal-popover.open { display: block; }
 
   /* Modals */
   .modal-overlay {
@@ -237,29 +273,6 @@
   .modal-row input[type="text"]:focus,
   .modal-row input[type="password"]:focus { border-color: var(--border-hover); }
   .modal-row input[type="range"] { width: 100%; }
-  .modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
-  .modal-actions button {
-    font-size: 13px;
-    padding: 7px 16px;
-    border-radius: var(--radius-md);
-    border: 0.5px solid var(--border);
-    background: none;
-    color: var(--text);
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .modal-actions .save-btn {
-    background: var(--text);
-    color: var(--bg);
-    border-color: var(--text);
-  }
-  .modal-actions button:hover { opacity: 0.8; }
-  .modal-error {
-    font-size: 12px;
-    color: #D85A30;
-    margin-top: 6px;
-    min-height: 16px;
-  }
   .modal-row textarea {
     width: 100%;
     font-size: 13px;
@@ -275,24 +288,20 @@
     line-height: 1.45;
   }
   .modal-row textarea:focus { border-color: var(--border-hover); }
-  /* Hover tooltip */
-  #goal-tooltip {
-    position: fixed;
-    z-index: 999;
-    background: var(--text);
-    color: var(--bg);
-    font-size: 12px;
-    line-height: 1.5;
-    padding: 7px 11px;
-    border-radius: 8px;
-    max-width: 260px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.12s;
-    white-space: pre-wrap;
-    word-break: break-word;
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+  .modal-actions button {
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
   }
-  #goal-tooltip.visible { opacity: 1; }
+  .modal-actions .save-btn { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .modal-actions button:hover { opacity: 0.8; }
+  .modal-error { font-size: 12px; color: #D85A30; margin-top: 6px; min-height: 16px; }
 </style>
 </head>
 <body>
@@ -304,7 +313,7 @@
 </header>
 
 <div class="grid" id="app"></div>
-<div id="goal-tooltip"></div>
+<div id="goal-popover"></div>
 
 <!-- Goal Edit Modal -->
 <div class="modal-overlay" id="modal">
@@ -315,7 +324,7 @@
       <input type="text" id="modal-name" placeholder="What's the goal?" />
     </div>
     <div class="modal-row">
-      <label>Notes <span style="color:var(--text-muted);font-weight:400">(shown on hover)</span></label>
+      <label>Details <span style="color:var(--text-muted);font-weight:400">(shown on click)</span></label>
       <textarea id="modal-desc" placeholder="Add context, details, or a reminder…"></textarea>
     </div>
     <div class="modal-row">
@@ -346,14 +355,27 @@
 </div>
 
 <script>
-// ---- Mode detection ----
+const DATA_URL = 'https://raw.githubusercontent.com/sriharimaneru/goals-tracker/main/data.json';
+const SAVE_URL = '/.netlify/functions/save';
 const PASSWORD = 'havefun!';
+
+// ---- Mode detection (sync, before data loads) ----
 const isEditPath = /\/edit\/?(\?.*)?$/.test(window.location.pathname);
 let editMode = false;
 
 const pwModal = document.getElementById('pw-modal');
 const pwInput = document.getElementById('pw-input');
 const pwError = document.getElementById('pw-error');
+
+if (isEditPath) {
+  if (sessionStorage.getItem('goals_auth') === 'true') {
+    editMode = true;
+    document.body.classList.add('edit-mode');
+  } else {
+    pwModal.classList.add('open');
+    setTimeout(() => pwInput.focus(), 50);
+  }
+}
 
 document.getElementById('pw-submit').addEventListener('click', tryPassword);
 pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
@@ -362,7 +384,10 @@ function tryPassword() {
   if (pwInput.value === PASSWORD) {
     sessionStorage.setItem('goals_auth', 'true');
     pwError.textContent = '';
-    activateEditMode();
+    editMode = true;
+    document.body.classList.add('edit-mode');
+    pwModal.classList.remove('open');
+    render();
   } else {
     pwError.textContent = 'Incorrect password. Try again.';
     pwInput.value = '';
@@ -370,90 +395,81 @@ function tryPassword() {
   }
 }
 
-document.getElementById('pw-cancel').addEventListener('click', () => {
-  window.location.href = '/';
-});
-
-document.getElementById('done-btn').addEventListener('click', () => {
-  window.location.href = '/';
-});
+document.getElementById('pw-cancel').addEventListener('click', () => { window.location.href = '/'; });
+document.getElementById('done-btn').addEventListener('click', () => { window.location.href = '/'; });
 
 // ---- Data ----
-// Bump DATA_VERSION whenever DEFAULT is updated — forces all devices to sync the new baseline.
-const DATA_VERSION = '2026-04-01';
-const DEFAULT = [
-  {
-    id: 'health', label: 'Health',
-    goals: [
-      { name: 'Finished Hyrox', progress: 75 },
-      { name: '15% body fat', progress: 10 },
-      { name: 'Sleep score 80', progress: 5 },
-      { name: 'Bright, energetic eyes', progress: 2 }
-    ]
-  },
-  {
-    id: 'work', label: 'Work',
-    goals: [
-      { name: 'SV debt free', progress: 60 },
-      { name: 'Raised $5M for SV', progress: 10 },
-      { name: 'Raised $1M for SF', progress: 0 },
-      { name: '₹1Cr diversified', progress: 0 }
-    ]
-  },
-  {
-    id: 'family', label: 'Family',
-    goals: [
-      { name: 'Found my partner', progress: 0 },
-      { name: 'Parents moved to Farmhouse', progress: 0 },
-      { name: 'Paid off Samasra', progress: 0 },
-      { name: '5 gifts for Vedh', progress: 0 }
-    ]
-  },
-  {
-    id: 'fun', label: 'Fun',
-    goals: [
-      { name: 'Dated 25', progress: 12 },
-      { name: '15 outdoor weekends', progress: 0 },
-      { name: 'Explored 5 new countries', progress: 0 },
-      { name: 'Massage, Vocals & Dance', progress: 0 }
-    ]
-  }
-];
+let state = [];
 
-let state;
-try {
-  const saved = JSON.parse(localStorage.getItem('goals_2026'));
-  const savedVersion = localStorage.getItem('goals_2026_version');
-  state = (saved && savedVersion === DATA_VERSION) ? saved : DEFAULT;
-} catch(e) { state = DEFAULT; }
-if (!state || state.length !== 4) state = DEFAULT;
-
-function save() {
+async function init() {
+  // 1. Try remote data.json (cache-busted)
   try {
-    localStorage.setItem('goals_2026', JSON.stringify(state));
-    localStorage.setItem('goals_2026_version', DATA_VERSION);
+    const res = await fetch(DATA_URL + '?t=' + Date.now());
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length === 4) {
+        state = data;
+        try { localStorage.setItem('goals_2026', JSON.stringify(state)); } catch(e) {}
+        render();
+        return;
+      }
+    }
   } catch(e) {}
-}
 
-// ---- Mode init (after state is ready) ----
-if (isEditPath) {
-  if (sessionStorage.getItem('goals_auth') === 'true') {
-    activateEditMode();
-  } else {
-    pwModal.classList.add('open');
-    setTimeout(() => pwInput.focus(), 50);
-  }
-}
+  // 2. Fallback: localStorage
+  try {
+    const saved = JSON.parse(localStorage.getItem('goals_2026'));
+    if (Array.isArray(saved) && saved.length === 4) { state = saved; render(); return; }
+  } catch(e) {}
 
-function activateEditMode() {
-  editMode = true;
-  document.body.classList.add('edit-mode');
-  pwModal.classList.remove('open');
+  // 3. Last resort: empty template
+  state = [
+    { id: 'health', label: 'Health', goals: Array(4).fill(null).map(() => ({ name: '', progress: 0, desc: '' })) },
+    { id: 'work',   label: 'Work',   goals: Array(4).fill(null).map(() => ({ name: '', progress: 0, desc: '' })) },
+    { id: 'family', label: 'Family', goals: Array(4).fill(null).map(() => ({ name: '', progress: 0, desc: '' })) },
+    { id: 'fun',    label: 'Fun',    goals: Array(4).fill(null).map(() => ({ name: '', progress: 0, desc: '' })) },
+  ];
   render();
 }
 
+function save() {
+  // Local cache
+  try { localStorage.setItem('goals_2026', JSON.stringify(state)); } catch(e) {}
+  // Remote — fire and forget
+  fetch(SAVE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(state),
+  }).catch(() => {});
+}
+
+// ---- Popover ----
+const popover = document.getElementById('goal-popover');
+let activePopoverBtn = null;
+
+function openPopover(text, btn) {
+  if (activePopoverBtn === btn) { closePopover(); return; }
+  activePopoverBtn = btn;
+  popover.textContent = text;
+  popover.classList.add('open');
+  // Position below the button, clamped to viewport
+  const r = btn.getBoundingClientRect();
+  popover.style.left = '0'; popover.style.top = '0';
+  const pw = popover.offsetWidth, ph = popover.offsetHeight;
+  let left = r.left, top = r.bottom + 8;
+  if (left + pw > window.innerWidth - 12) left = window.innerWidth - pw - 12;
+  if (left < 12) left = 12;
+  if (top + ph > window.innerHeight - 12) top = r.top - ph - 8;
+  popover.style.left = left + 'px';
+  popover.style.top = top + 'px';
+}
+function closePopover() { popover.classList.remove('open'); activePopoverBtn = null; }
+document.addEventListener('click', e => {
+  if (activePopoverBtn && !e.target.closest('.goal-more-btn')) closePopover();
+});
+
 // ---- Drag state ----
-let dragSrc = null; // { ci, gi }
+let dragSrc = null;
 
 // ---- Render ----
 function render() {
@@ -473,7 +489,7 @@ function render() {
       const row = document.createElement('div');
       row.className = 'goal-row';
 
-      // Drag handle (edit mode only)
+      // Drag handle
       const handle = document.createElement('div');
       handle.className = 'drag-handle';
       handle.title = 'Drag to reorder';
@@ -484,9 +500,31 @@ function render() {
       const isEmpty = !g.name;
       const info = document.createElement('div');
       info.className = 'goal-info';
-      info.innerHTML =
-        `<div class="goal-name${isEmpty ? ' placeholder' : ''}">${isEmpty ? 'Add goal\u2026' : g.name}</div>` +
-        (!isEmpty ? `<div class="goal-pct">${g.progress}%</div>` : '');
+
+      const nameRow = document.createElement('div');
+      nameRow.className = 'goal-name-row';
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'goal-name' + (isEmpty ? ' placeholder' : '');
+      nameEl.textContent = isEmpty ? 'Add goal\u2026' : g.name;
+      nameRow.appendChild(nameEl);
+
+      if (!isEmpty && g.desc) {
+        const moreBtn = document.createElement('button');
+        moreBtn.className = 'goal-more-btn';
+        moreBtn.textContent = 'more';
+        moreBtn.title = 'Show details';
+        moreBtn.addEventListener('click', e => { e.stopPropagation(); openPopover(g.desc, moreBtn); });
+        nameRow.appendChild(moreBtn);
+      }
+
+      info.appendChild(nameRow);
+      if (!isEmpty) {
+        const pct = document.createElement('div');
+        pct.className = 'goal-pct';
+        pct.textContent = g.progress + '%';
+        info.appendChild(pct);
+      }
       row.appendChild(info);
 
       // Progress bar
@@ -501,30 +539,15 @@ function render() {
       barWrap.appendChild(barBg);
       row.appendChild(barWrap);
 
-      // Hover tooltip (read & edit mode)
-      if (g.desc) {
-        row.addEventListener('mouseenter', () => showTooltip(g.desc, row));
-        row.addEventListener('mouseleave', hideTooltip);
-      }
-
       if (editMode) {
         row.draggable = true;
-
-        // Double-click row → open edit modal
-        row.addEventListener('dblclick', e => {
-          e.stopPropagation();
-          openModal(ci, gi);
-        });
-
-        // Click bar → set progress
+        row.addEventListener('dblclick', e => { e.stopPropagation(); openModal(ci, gi); });
         barBg.addEventListener('click', e => {
           const rect = barBg.getBoundingClientRect();
           const pct = Math.round(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * 100);
           state[ci].goals[gi].progress = pct;
           save(); render();
         });
-
-        // Drag & drop reordering (within same category)
         row.addEventListener('dragstart', e => {
           dragSrc = { ci, gi };
           row.classList.add('dragging');
@@ -541,9 +564,7 @@ function render() {
           if (!dragSrc || dragSrc.ci !== ci) return;
           row.classList.add('drag-over');
         });
-        row.addEventListener('dragleave', () => {
-          row.classList.remove('drag-over');
-        });
+        row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
         row.addEventListener('drop', e => {
           e.preventDefault();
           row.classList.remove('drag-over');
@@ -562,27 +583,6 @@ function render() {
     app.appendChild(card);
   });
 }
-
-// ---- Tooltip ----
-const tooltip = document.getElementById('goal-tooltip');
-
-function showTooltip(text, anchorEl) {
-  tooltip.textContent = text;
-  tooltip.classList.add('visible');
-  const rect = anchorEl.getBoundingClientRect();
-  const gap = 8;
-  let top = rect.bottom + gap;
-  let left = rect.left;
-  // keep within viewport
-  tooltip.style.left = '0'; tooltip.style.top = '0'; // reset before measuring
-  const tw = tooltip.offsetWidth;
-  if (left + tw > window.innerWidth - 12) left = window.innerWidth - tw - 12;
-  if (left < 12) left = 12;
-  if (top + tooltip.offsetHeight > window.innerHeight - 12) top = rect.top - tooltip.offsetHeight - gap;
-  tooltip.style.left = left + 'px';
-  tooltip.style.top = top + 'px';
-}
-function hideTooltip() { tooltip.classList.remove('visible'); }
 
 // ---- Goal Edit Modal ----
 let editTarget = null;
@@ -626,7 +626,7 @@ document.getElementById('modal').addEventListener('click', e => {
   }
 });
 
-render();
+init();
 </script>
 </body>
 </html>
