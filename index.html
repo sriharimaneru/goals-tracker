@@ -355,7 +355,7 @@
 </div>
 
 <script>
-const DATA_URL = 'https://raw.githubusercontent.com/sriharimaneru/goals-tracker/main/data.json';
+const DATA_URL = 'https://api.github.com/repos/sriharimaneru/goals-tracker/contents/data.json';
 const SAVE_URL = '/.netlify/functions/save';
 const PASSWORD = 'havefun!';
 
@@ -404,9 +404,10 @@ let state = [];
 async function init() {
   // 1. Try remote data.json (cache-busted)
   try {
-    const res = await fetch(DATA_URL + '?t=' + Date.now());
+    const res = await fetch(DATA_URL, { headers: { 'Accept': 'application/vnd.github+json' } });
     if (res.ok) {
-      const data = await res.json();
+      const { content } = await res.json();
+      const data = JSON.parse(atob(content.replace(/\n/g, '')));
       if (Array.isArray(data) && data.length === 4) {
         state = data;
         try { localStorage.setItem('goals_2026', JSON.stringify(state)); } catch(e) {}
