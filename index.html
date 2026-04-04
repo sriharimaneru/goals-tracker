@@ -407,7 +407,8 @@ async function init() {
     const res = await fetch(DATA_URL, { headers: { 'Accept': 'application/vnd.github+json' } });
     if (res.ok) {
       const { content } = await res.json();
-      const data = JSON.parse(atob(content.replace(/\n/g, '')));
+      const bytes = Uint8Array.from(atob(content.replace(/\n/g, '')), c => c.charCodeAt(0));
+      const data = JSON.parse(new TextDecoder().decode(bytes));
       if (Array.isArray(data) && data.length === 4) {
         state = data;
         try { localStorage.setItem('goals_2026', JSON.stringify(state)); } catch(e) {}
