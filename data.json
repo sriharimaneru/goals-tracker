@@ -3,10 +3,10 @@
     "id": "health",
     "label": "Health",
     "goals": [
-      { "name": "Finished Hyrox", "progress": 75, "desc": "" },
-      { "name": "15% body fat", "progress": 10, "desc": "" },
-      { "name": "Sleep score 80", "progress": 5, "desc": "" },
-      { "name": "Bright, energetic eyes", "progress": 2, "desc": "" }
+      { "name": "Became Hyrox Athlete", "progress": 75, "desc": "" },
+      { "name": "Body Fat - 18%", "progress": 10, "desc": "" },
+      { "name": "Sleep Score - 85", "progress": 2, "desc": "" },
+      { "name": "Fitness Age - 30", "progress": 2, "desc": "" }
     ]
   },
   {
@@ -24,9 +24,9 @@
     "label": "Family",
     "goals": [
       { "name": "Found my partner", "progress": 0, "desc": "" },
+      { "name": "5 life gifts for Vedh", "progress": 0, "desc": "" },
       { "name": "Parents moved to Farmhouse", "progress": 0, "desc": "" },
-      { "name": "Paid off Samasra", "progress": 0, "desc": "" },
-      { "name": "5 gifts for Vedh", "progress": 0, "desc": "" }
+      { "name": "Paid off Samasra", "progress": 0, "desc": "" }
     ]
   },
   {
@@ -34,8 +34,8 @@
     "label": "Fun",
     "goals": [
       { "name": "Dated 25", "progress": 12, "desc": "" },
-      { "name": "15 outdoor weekends", "progress": 0, "desc": "" },
-      { "name": "Explored 5 new countries", "progress": 0, "desc": "" },
+      { "name": "New look, head to toe", "progress": 40, "desc": "" },
+      { "name": "10 + 5 farm weekends", "progress": 0, "desc": "" },
       { "name": "Massage, Vocals & Dance", "progress": 0, "desc": "" }
     ]
   }
