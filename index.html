@@ -155,12 +155,6 @@
   body.edit-mode .goal-row.drag-over { outline: 1.5px dashed var(--border-hover); border-radius: 6px; }
 
   .goal-info { flex: 1; min-width: 0; }
-  .goal-name-row {
-    display: flex;
-    align-items: baseline;
-    gap: 3px;
-    min-width: 0;
-  }
   .goal-name {
     font-size: 15px;
     font-weight: 500;
@@ -168,33 +162,31 @@
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--text);
-    min-width: 0;
-    flex: 0 1 auto;
   }
   .goal-name.placeholder { color: var(--text-faint); font-style: italic; font-weight: 400; }
-  /* info icon — read mode only */
-  .goal-more-btn {
-    flex: 0 0 auto;
-    font-size: 11px;
-    color: var(--text-faint);
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    font-family: inherit;
-    line-height: 1;
-    opacity: 0.6;
-    transition: opacity 0.1s, color 0.1s;
-  }
-  .goal-more-btn:hover { opacity: 1; color: var(--text-muted); }
-  body.edit-mode .goal-more-btn { display: none; }
-  .goal-pct {
+  .goal-desc {
     font-size: 12px;
     color: var(--text-muted);
     margin-top: 3px;
+    line-height: 1.4;
+    white-space: normal;
   }
-  .bar-wrap { flex: 0 0 90px; }
+  body.edit-mode .goal-desc { display: none; }
+  .bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto;
+  }
+  .goal-pct {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 26px;
+    text-align: right;
+  }
   .bar-bg {
+    width: 80px;
+    flex-shrink: 0;
     height: 6px;
     background: var(--border);
     border-radius: 3px;
@@ -215,24 +207,6 @@
   .fun    .bar-fill { background: #D85A30; }
   body.edit-mode .goal-info { cursor: pointer; }
 
-  /* Details popover */
-  #goal-popover {
-    position: fixed;
-    z-index: 200;
-    background: var(--surface);
-    border: 0.5px solid var(--border-hover);
-    border-radius: 10px;
-    padding: 11px 14px;
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--text);
-    max-width: 260px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-    display: none;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  #goal-popover.open { display: block; }
 
   /* Modals */
   .modal-overlay {
@@ -312,7 +286,6 @@
 </header>
 
 <div class="grid" id="app"></div>
-<div id="goal-popover"></div>
 
 <!-- Goal Edit Modal -->
 <div class="modal-overlay" id="modal">
@@ -444,30 +417,6 @@ function save() {
   }).catch(() => {});
 }
 
-// ---- Popover ----
-const popover = document.getElementById('goal-popover');
-let activePopoverBtn = null;
-
-function openPopover(text, btn) {
-  if (activePopoverBtn === btn) { closePopover(); return; }
-  activePopoverBtn = btn;
-  popover.textContent = text;
-  popover.classList.add('open');
-  // Position below the button, clamped to viewport
-  const r = btn.getBoundingClientRect();
-  popover.style.left = '0'; popover.style.top = '0';
-  const pw = popover.offsetWidth, ph = popover.offsetHeight;
-  let left = r.left, top = r.bottom + 8;
-  if (left + pw > window.innerWidth - 12) left = window.innerWidth - pw - 12;
-  if (left < 12) left = 12;
-  if (top + ph > window.innerHeight - 12) top = r.top - ph - 8;
-  popover.style.left = left + 'px';
-  popover.style.top = top + 'px';
-}
-function closePopover() { popover.classList.remove('open'); activePopoverBtn = null; }
-document.addEventListener('click', e => {
-  if (activePopoverBtn && !e.target.closest('.goal-more-btn')) closePopover();
-});
 
 // ---- Drag state ----
 let dragSrc = null;
@@ -502,33 +451,20 @@ function render() {
       const info = document.createElement('div');
       info.className = 'goal-info';
 
-      const nameRow = document.createElement('div');
-      nameRow.className = 'goal-name-row';
-
       const nameEl = document.createElement('div');
       nameEl.className = 'goal-name' + (isEmpty ? ' placeholder' : '');
       nameEl.textContent = isEmpty ? 'Add goal\u2026' : g.name;
-      nameRow.appendChild(nameEl);
+      info.appendChild(nameEl);
 
       if (!isEmpty && g.desc) {
-        const moreBtn = document.createElement('button');
-        moreBtn.className = 'goal-more-btn';
-        moreBtn.textContent = 'ⓘ';
-        moreBtn.title = 'Show details';
-        moreBtn.addEventListener('click', e => { e.stopPropagation(); openPopover(g.desc, moreBtn); });
-        nameRow.appendChild(moreBtn);
-      }
-
-      info.appendChild(nameRow);
-      if (!isEmpty) {
-        const pct = document.createElement('div');
-        pct.className = 'goal-pct';
-        pct.textContent = g.progress + '%';
-        info.appendChild(pct);
+        const descEl = document.createElement('div');
+        descEl.className = 'goal-desc';
+        descEl.textContent = g.desc;
+        info.appendChild(descEl);
       }
       row.appendChild(info);
 
-      // Progress bar
+      // Progress bar + percentage
       const barWrap = document.createElement('div');
       barWrap.className = 'bar-wrap';
       const barBg = document.createElement('div');
@@ -538,6 +474,12 @@ function render() {
       barFill.style.width = g.progress + '%';
       barBg.appendChild(barFill);
       barWrap.appendChild(barBg);
+      if (!isEmpty) {
+        const pct = document.createElement('span');
+        pct.className = 'goal-pct';
+        pct.textContent = g.progress + '%';
+        barWrap.appendChild(pct);
+      }
       row.appendChild(barWrap);
 
       if (editMode) {
