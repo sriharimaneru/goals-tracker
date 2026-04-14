@@ -66,14 +66,14 @@
         "desc": "Emp & Grat | Sports & Vocals"
       },
       {
-        "name": "Buy farmland",
-        "progress": 0,
-        "desc": "Atleast 10 acres | Near HSR"
-      },
-      {
         "name": "Pay off parents home",
         "progress": 0,
         "desc": "Second fully paid home for Parents!"
+      },
+      {
+        "name": "Buy farmland",
+        "progress": 0,
+        "desc": "Atleast 10 acres | Near HSR"
       }
     ]
   },
