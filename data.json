@@ -9,6 +9,11 @@
         "desc": "Finish Men Singles without injury!"
       },
       {
+        "name": "Hyrox in sub-100",
+        "progress": 43,
+        "desc": "Singles sub-100 or Mixed sub-90"
+      },
+      {
         "name": "Body Fat - 18%",
         "progress": 30,
         "desc": "Started the year at 31%"
@@ -17,11 +22,6 @@
         "name": "Sleep Score - 80",
         "progress": 25,
         "desc": "Rolling 90 days average!"
-      },
-      {
-        "name": "Hyrox in sub-100",
-        "progress": 43,
-        "desc": "Singles sub-100 or Mixed sub-90"
       }
     ]
   },
